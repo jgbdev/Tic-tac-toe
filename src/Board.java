@@ -136,29 +136,36 @@ class Board {
         return Player.None;
     }
 
+    private Character getChar(Position p){
+
+        if(arrayContains(p,xPositions)>=0)return 'X';
+        if(arrayContains(p,oPositions)>=0)return 'O';
+        return ' ';
+    }
+
+    private Character[] charArgs(){
+        Character[] output = new Character[grid.size()];
+        int i = 0;
+        for (Position p : grid){
+            output[i] = getChar(p);
+            i++;
+        }
+        return output;
+    }
+
     @Override
     public String toString(){
-        StringBuilder output = new StringBuilder();
-        int i = 1;
-        for(Position p : grid){
+        String s = String.format
+                ("     1   2   3\n\n" +
+                 " a   %s | %s | %s \n" +
+                 "    ---+---+---\n" +
+                 " b   %s | %s | %s \n" +
+                 "    ---+---+---\n" +
+                 " c   %s | %s | %s \n",
+                        charArgs()
+                        );
 
-            if( arrayContains( p,  xPositions ) >= 0 ){
-                output.append('X');
-            }else if( arrayContains( p , oPositions ) >= 0 ) {
-                output.append('O');
-            }else {
-                output.append('.');
-            }
-
-            if(i >= COL_SIZE){
-                i = 1;
-                output.append('\n');
-            }else{
-                i++;
-            }
-
-        }
-        return output.toString();
+        return s.toString();
     }
 
 
