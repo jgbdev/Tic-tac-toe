@@ -14,7 +14,14 @@ class Board {
     private Player nextPlayer ;
     private Player[][] board;
 
-    public Board() {
+    //Debug
+    long calculations;
+    Boolean debug = false;
+
+    // Pruning variables
+    boolean pruning;
+
+    public Board(Boolean pruning) {
 
         board = new Player[3][3];
         nextPlayer = Player.X;
@@ -23,10 +30,11 @@ class Board {
                 board[x][y] = Player.None;
             }
         }
+        this.pruning = pruning;
     }
 
     private int getScore(Player player, Player[][] bb){
-
+        calculations++;
         List<Integer> scores = new ArrayList<>();
         Player winner = winner(bb);
         if(winner.equals(nextPlayer)) {
@@ -48,9 +56,20 @@ class Board {
 
                     bb[x][y] = player;
 
-                    scores.add( getScore( player.equals(Player.O) ? Player.X : Player.O , bb ));
 
+
+                    Integer score = getScore( player.equals(Player.O) ? Player.X : Player.O , bb );
                     bb[x][y] = Player.None;
+                    if(pruning) {
+                        if(player.equals(nextPlayer)){
+                            if(score>0)return score;
+                        }else{
+                            if(score<0)return score;
+                        }
+                    }
+
+                    scores.add(score);
+
 
                 }
             }
@@ -66,6 +85,7 @@ class Board {
     public Position suggest(){
         List<Position> positions = new ArrayList<Position>();
         List<Integer> scores = new ArrayList<Integer>();
+        calculations = 0L;
 
         //Iterate through possible moves
         for(int x = 0; x < COL_SIZE; x++){
@@ -74,7 +94,13 @@ class Board {
 
                     board[x][y] = nextPlayer;
 
-                    scores.add(getScore(nextPlayer.equals(Player.O) ? Player.X : Player.O, board ));
+                    Integer score = getScore(nextPlayer.equals(Player.O) ? Player.X : Player.O, board );
+                    if(pruning && (score>0)){
+                        board[x][y] = Player.None;
+                        if(debug){System.out.printf("Calculations: %d\n",calculations);}
+                        return new Position(x,y);
+                    }
+                    scores.add(score);
                     positions.add(new Position(x,y));
 
                     board[x][y] = Player.None;
@@ -83,7 +109,7 @@ class Board {
         }
 
         int j = maxIndex(scores);
-
+        if(debug){System.out.printf("Calculations: %d\n",calculations);}
         return positions.get(j);
     }
 
@@ -130,6 +156,7 @@ class Board {
         }
         return false;
     }
+
     public void move(Position position){
         board[position.row()][position.col()] = nextPlayer;
         if(nextPlayer==Player.X)nextPlayer=Player.O;

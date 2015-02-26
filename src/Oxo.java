@@ -25,20 +25,26 @@ class Oxo
 
     void run(String[] args)
     {
+
+        Boolean pruning = false;
+        if(args.length>0){
+            pruning = (args[0].charAt(0) == '1');
+        }
+
         System.out.println("Would you like to be X or O?");
         Scanner scanner = new Scanner(System.in);
         String human = scanner.nextLine();
         System.out.println();
-        if (human.equals("O")||human.equals("o")) play(scanner, Player.O);
-        else play(scanner, Player.X);
+        if (human.equals("O")||human.equals("o")) play(scanner, Player.O,pruning);
+        else play(scanner, Player.X, pruning);
     }
 
     // Initialise and loop through pairs of moves, one by the human player (who
     // plays first and is 'X') and one by the computer player.
 
-    void play(Scanner scanner, Player human)
+    void play(Scanner scanner, Player human, Boolean pruning)
     {
-        board = new Board();
+        board = new Board(pruning);
         gen = new Random();
         if (human == Player.O) computerMove(board);
         System.out.print(board.toString());
