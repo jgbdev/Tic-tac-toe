@@ -11,10 +11,13 @@ class Board {
     private final Integer ROW_SIZE = 3;
     private final Integer COL_SIZE = 3;
 
-    private Player nextPlayer = Player.X;
-    private Player[][] board = new Player[3][3];
+    private Player nextPlayer ;
+    private Player[][] board;
 
     public Board() {
+
+        board = new Player[3][3];
+        nextPlayer = Player.X;
         for(int x = 0 ; x < ROW_SIZE;x++){
             for(int y = 0; y < COL_SIZE ; y++){
                 board[x][y] = Player.None;
@@ -24,7 +27,7 @@ class Board {
 
     private int getScore(Player player, Player[][] bb){
 
-        List<Integer> scores = new ArrayList<Integer>();
+        List<Integer> scores = new ArrayList<>();
         Player winner = winner(bb);
         if(winner.equals(nextPlayer)) {
             return 1;
@@ -38,8 +41,6 @@ class Board {
             return -1;
         }
 
-
-
         //Iterate through possible moves
         for( int x = 0; x<COL_SIZE ; x++ ){
             for( int y = 0; y<ROW_SIZE ; y++ ){
@@ -47,15 +48,13 @@ class Board {
 
                     bb[x][y] = player;
 
-                    scores.add( getScore(player.equals(Player.O) ? Player.X : Player.O,bb ));
+                    scores.add( getScore( player.equals(Player.O) ? Player.X : Player.O , bb ));
 
                     bb[x][y] = Player.None;
-
 
                 }
             }
         }
-
 
         if(player.equals(nextPlayer)){
             return Collections.max(scores);
@@ -69,14 +68,13 @@ class Board {
         List<Integer> scores = new ArrayList<Integer>();
 
         //Iterate through possible moves
-        for(int x = 0; x<COL_SIZE;x++){
-            for(int y = 0; y<ROW_SIZE;y++){
+        for(int x = 0; x < COL_SIZE; x++){
+            for(int y = 0; y<ROW_SIZE; y++){
                 if(board[x][y]==Player.None){
 
                     board[x][y] = nextPlayer;
 
                     scores.add(getScore(nextPlayer.equals(Player.O) ? Player.X : Player.O, board ));
-
                     positions.add(new Position(x,y));
 
                     board[x][y] = Player.None;
@@ -92,9 +90,8 @@ class Board {
     private int maxIndex(List<Integer> integers){
         int max = integers.get(0);
 
-        int i=0;
         int j=0;
-
+        int i= 0;
         for(Integer in: integers){
             if(in>max){
                 max = in;
@@ -105,9 +102,6 @@ class Board {
         return  j;
     }
 
-
-
-
     public Position[] blanks(){
         List<Position> output = new LinkedList<Position>();
         for(int x = 0; x<COL_SIZE;x++){
@@ -115,13 +109,7 @@ class Board {
                 if(board[x][y]==Player.None)output.add(new Position(x,y));
             }
         }
-        Position out[] = new Position[output.size()];
-        int i = 0;
-        for (Position p : output){
-            out[i] = p;
-            i++;
-        }
-        return out;
+        return output.toArray(new Position[output.size()]);
     }
 
     public Position position(String position){
@@ -151,8 +139,6 @@ class Board {
     private boolean checkWin(Player player,Player[][] board){
         int countX = 0;
         int countY[] = {0,0,0};
-
-
 
         for( int x=0 ; x<COL_SIZE ;x++ ){
 
@@ -196,6 +182,7 @@ class Board {
 
     private int freePositions(Player[][] bb){
         int i = 0;
+
         for ( int y = 0 ; y < ROW_SIZE ; y++){
             for ( int x = 0; x < COL_SIZE ; x++){
                 if(bb[x][y] == Player.None){i++;}

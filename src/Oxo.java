@@ -29,7 +29,7 @@ class Oxo
         Scanner scanner = new Scanner(System.in);
         String human = scanner.nextLine();
         System.out.println();
-        if (human.equals("O")) play(scanner, Player.O);
+        if (human.equals("O")||human.equals("o")) play(scanner, Player.O);
         else play(scanner, Player.X);
     }
 
