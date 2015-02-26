@@ -1,3 +1,4 @@
+import java.io.Console;
 import java.util.Scanner;
 import java.util.Random;
 
@@ -79,7 +80,11 @@ class Oxo
         Position[] blanks = board.blanks();
         int index = gen.nextInt(blanks.length);
         Position position = blanks[index];
-        board.move(position);
+        Position idea  = board.suggest();
+        if(idea!=null){
+        System.out.println("Suggests" + idea.row() + "  " + idea.col() );
+    }
+        board.move(idea);
     }
 
     // Check whether one player has won, print and stop the game if so.

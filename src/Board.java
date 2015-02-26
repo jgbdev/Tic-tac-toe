@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,47 +11,125 @@ class Board {
     private final Integer ROW_SIZE = 3;
     private final Integer COL_SIZE = 3;
 
-    private boolean xTurn = true;
+    private Player nextPlayer = Player.X;
+    private Player[][] board = new Player[3][3];
 
-    private List<Position> grid =           new LinkedList<Position>() ;
-    private List<Position> freePositions =  new LinkedList<Position>();
-    private List<Position> xPositions =     new LinkedList<Position>();
-    private List<Position> oPositions =     new LinkedList<Position>();
+    public Board() {
+        for(int x = 0 ; x < ROW_SIZE;x++){
+            for(int y = 0; y < COL_SIZE ; y++){
+                board[x][y] = Player.None;
+            }
+        }
+    }
 
-    public Board(){
-        freePositions = restart();
-        grid = restart();
+    private int getScore(Player player, Player[][] bb){
 
+        List<Integer> scores = new ArrayList<Integer>();
+        Player winner = winner(bb);
+        if(winner.equals(nextPlayer)) {
+            return 1;
+        }
+
+        if(winner.equals(Player.Both)){
+            return 0;
+        }
+
+        if(!winner.equals(player.None)){
+            return -1;
+        }
+
+
+
+        //Iterate through possible moves
+        for( int x = 0; x<COL_SIZE ; x++ ){
+            for( int y = 0; y<ROW_SIZE ; y++ ){
+                if( bb[x][y]==Player.None ){
+
+                    bb[x][y] = player;
+
+                    scores.add( getScore(player.equals(Player.O) ? Player.X : Player.O,bb ));
+
+                    bb[x][y] = Player.None;
+
+
+                }
+            }
+        }
+
+
+        if(player.equals(nextPlayer)){
+            return Collections.max(scores);
+        }else{
+            return Collections.min(scores);
+        }
+    }
+
+    public Position suggest(){
+        List<Position> positions = new ArrayList<Position>();
+        List<Integer> scores = new ArrayList<Integer>();
+
+        //Iterate through possible moves
+        for(int x = 0; x<COL_SIZE;x++){
+            for(int y = 0; y<ROW_SIZE;y++){
+                if(board[x][y]==Player.None){
+
+                    board[x][y] = nextPlayer;
+
+                    scores.add(getScore(nextPlayer.equals(Player.O) ? Player.X : Player.O, board ));
+
+                    positions.add(new Position(x,y));
+
+                    board[x][y] = Player.None;
+                }
+            }
+        }
+
+        int j = maxIndex(scores);
+
+        return positions.get(j);
+    }
+
+    private int maxIndex(List<Integer> integers){
+        int max = integers.get(0);
+
+        int i=0;
+        int j=0;
+
+        for(Integer in: integers){
+            if(in>max){
+                max = in;
+                j = i;
+            }
+            i++;
+        }
+        return  j;
     }
 
 
+
+
     public Position[] blanks(){
-        Position arrayBlanks[] = new Position[freePositions.size()];
+        List<Position> output = new LinkedList<Position>();
+        for(int x = 0; x<COL_SIZE;x++){
+            for(int y = 0; y<ROW_SIZE;y++){
+                if(board[x][y]==Player.None)output.add(new Position(x,y));
+            }
+        }
+        Position out[] = new Position[output.size()];
         int i = 0;
-        for(Position position: freePositions){
-            arrayBlanks[i] = position;
+        for (Position p : output){
+            out[i] = p;
             i++;
         }
-        return arrayBlanks;
+        return out;
     }
 
     public Position position(String position){
         if(validInput(position)) {
-            Position temp = new Position(position.charAt(1)-'1',position.charAt(0) - 'a');
-            if (arrayContains(temp, freePositions)>=0) {
-                return freePositions.get(arrayContains(temp, freePositions));
-            }
+            Position temp = new Position(position.charAt(0)-'a',position.charAt(1) - '1');
+            if(board[temp.row()][temp.col()]==Player.None)return new Position(temp.row(),temp.col());
         }
         return null;
-    }
-
-    private int arrayContains(Position input, List<Position> positions){
-        int i=0;
-        for(Position position:positions){
-            if( position.col()==input.col() && position.row()==input.row() )return i;
-            i++;
-        }
-        return -1;
     }
 
     private Boolean validInput(String input){
@@ -63,60 +143,39 @@ class Board {
         return false;
     }
     public void move(Position position){
-        int place = arrayContains(position, freePositions);
-        freePositions.remove(place);
-        if(xTurn){
-            xMove(position);
-        }else{
-            oMove(position);
-        }
+        board[position.row()][position.col()] = nextPlayer;
+        if(nextPlayer==Player.X)nextPlayer=Player.O;
+        else nextPlayer=Player.X;
     }
 
-    private void xMove(Position position){
-        xTurn = false;
-        xPositions.add(position);
+    private boolean checkWin(Player player,Player[][] board){
+        int countX = 0;
+        int countY[] = {0,0,0};
 
-    }
 
-    private void oMove(Position position){
-        xTurn = true;
-        oPositions.add(position);
-    }
 
-    private boolean checkWin(List<Position> list){
-        int sumX = 0;
+        for( int x=0 ; x<COL_SIZE ;x++ ){
 
-        if(list.size()<3) return  false;
-        int i = 0;
-        int count = 0;
-        int y[] = new int[3];
-        int d[] = new int[2];
+            for( int y = 0 ; y < ROW_SIZE ; y++ ){
 
-        for (Position p : grid){
+                if(board[x][y] == player) {
+                    countX++;
+                    countY[y]++;
+                    if(countY[y]>2)return true;
+                }
 
-            if(arrayContains(p,list)>=0){
-                sumX++;
-                y[i] ++;
-                if(sumX>2)return true;
-                if(y[i]>2)return true;
-                if( count==2 ||count==4||count == 6) {d[1] ++;if(d[1]>2)return true;}
-                if((count % 4 )== 0) {d[0] ++;if(d[0]>2)return true;}
+                if(countX>2)return true;
             }
+            countX = 0;
 
-            if(i < 2) {
-                i++;
-            }else {
-
-                i = 0;
-                sumX=0;
-
-            }
-            count ++;
         }
+
+        if(board[0][0] == player && board[1][1] == player && board[2][2] == player )return true;
+        if(board[2][0] == player && board[1][1] == player && board[0][2] == player )return true;
+
 
         return false;
     }
-
 
     private List restart(){
         List output = new LinkedList();
@@ -128,27 +187,49 @@ class Board {
         return output;
     }
 
-
     public Player winner(){
-        if(checkWin(xPositions)){return Player.X;}
-        if(checkWin(oPositions)){return Player.O;}
-        if(xPositions.size()+oPositions.size()>=grid.size()){return Player.Both;}
+        if(checkWin(Player.X,board)){return Player.X;}
+        if(checkWin(Player.O,board)){return Player.O;}
+        if(freePositions(board)==0){return Player.Both;}
         return Player.None;
     }
 
-    private Character getChar(Position p){
+    private int freePositions(Player[][] bb){
+        int i = 0;
+        for ( int y = 0 ; y < ROW_SIZE ; y++){
+            for ( int x = 0; x < COL_SIZE ; x++){
+                if(bb[x][y] == Player.None){i++;}
+            }
+        }
 
-        if(arrayContains(p,xPositions)>=0)return 'X';
-        if(arrayContains(p,oPositions)>=0)return 'O';
+        return i;
+    }
+
+    public Player winner(Player[][] bb){
+        if(checkWin(Player.X,bb)){return Player.X;}
+        if(checkWin(Player.O,bb)){return Player.O;}
+        if(freePositions(bb) == 0){return Player.Both;}
+        return Player.None;
+    }
+
+    private Character getChar(Player p){
+
+        if(p==Player.X)return 'X';
+        if(p==Player.O)return 'O';
         return ' ';
     }
 
     private Character[] charArgs(){
-        Character[] output = new Character[grid.size()];
+        Character[] output = new Character[ROW_SIZE*COL_SIZE];
         int i = 0;
-        for (Position p : grid){
-            output[i] = getChar(p);
-            i++;
+
+        for (int x=0;x<COL_SIZE;x++){
+            for(int y=0;y<COL_SIZE;y++){
+                output[i] = getChar(board[x][y]);
+                i++;
+            }
+
+
         }
         return output;
     }
